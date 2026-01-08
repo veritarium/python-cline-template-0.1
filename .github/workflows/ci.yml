@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality Gate (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            requirements-dev.txt
+            requirements.txt
+            pyproject.toml
+
+      # Create venv (cross‑platform, but shell syntax differs)
+      - name: Create venv (Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          python -m venv .venv
+
+      - name: Create venv (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python -m venv .venv
+
+      # Install dependencies inside the venv
+      - name: Install deps (Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          ./.venv/bin/python -m pip install -U pip setuptools wheel
+          if [ -f requirements-dev.txt ]; then
+            ./.venv/bin/python -m pip install -r requirements-dev.txt
+          else
+            ./.venv/bin/python -m pip install -U ruff pytest
+          fi
+
+      - name: Install deps (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          .\.venv\Scripts\python.exe -m pip install -U pip setuptools wheel
+          if (Test-Path "requirements-dev.txt") {
+            .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+          }
+          else {
+            .\.venv\Scripts\python.exe -m pip install -U ruff pytest
+          }
+
+      # Run the repo's quality gate script (PowerShell)
+      - name: Quality Gate (PowerShell script)
+        shell: pwsh
+        run: |
+          ./scripts/check.ps1
+
+      # Optional: test bash fallback on Linux (if the file exists)
+      - name: Quality Gate (bash fallback, optional)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          if [ -f scripts/check.sh ]; then
+            bash ./scripts/check.sh
+          else
+            echo "scripts/check.sh not present – skipping."
+          fi
