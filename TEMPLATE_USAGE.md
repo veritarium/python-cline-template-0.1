@@ -1,89 +1,155 @@
-# Template Usage
+# Template Usage - Quick Reference
 
-This repository is a template for Python + VS Code + Cline on Windows.
+Quick reference for using the python-cline-template.
 
-## Standard option (recommended start)
+## Quick Start Commands
 
-- The Python package name stays `devproj`.
-- Bootstrap adapts only project name / docs / memory.
+### Bootstrap New Project (Full Setup)
 
-## Steps after creating a repo from this template and cloning it
+```powershell
+# Windows
+.\scripts\bootstrap.ps1 -SetupVenv -NonInteractive
 
-1) **Clone** the new repository:
-   ```powershell
-   git clone <repository-url>
-   cd <project-folder>
-   ```
+# Linux/macOS (requires pwsh)
+pwsh ./scripts/bootstrap.ps1 -SetupVenv -NonInteractive
+```
 
-2) **Bootstrap** the project:
-   ```powershell
-   .\scripts\bootstrap.ps1 -SetupVenv
-   ```
-   This will:
-   - Replace `python-cline-template` in text files with your project name
-   - Create `.venv` (if it doesn't exist)
-   - Install development tools (ruff, pytest)
-   - Run the quality gate (`.\scripts\check.ps1`)
+### Documentation Only (No venv)
 
-3) **VS Code / code‑server Setup**
-
-   After bootstrapping, select the correct Python interpreter in VS Code:
-
-   1. Open the command palette (Ctrl+Shift+P / Cmd+Shift+P).
-   2. Type "Python: Select Interpreter" and select the command.
-   3. Choose the interpreter from the `.venv` folder:
-      - **Windows**: `./.venv/Scripts/python.exe`
-      - **Linux/macOS**: `./.venv/bin/python`
-
-   Once selected, VS Code will use the virtual environment for IntelliSense, linting, testing, and formatting.
-
-### Linux / code‑server notes
-
-- **PowerShell scripts:** On Linux, prefix the script calls with `pwsh` (e.g., `pwsh ./scripts/bootstrap.ps1`).  
-  If pwsh is not installed, you can install it via `sudo apt‑get install -y powershell` or use the Bash fallback `scripts/check.sh`.
-
-- **Virtual environment paths:** The Python interpreter inside the virtual environment is located at `.venv/bin/python` (instead of `.venv\Scripts\python.exe` on Windows).
-
-- **Missing python3‑venv:** If `python3 -m venv .venv` fails, install the system package:
-  ```bash
-  sudo apt‑get install -y python3‑venv
-  ```
-
-- **Bash fallback:** A Bash version of the quality‑gate script is available as `scripts/check.sh`. It can be used on systems without PowerShell.
-
-4) **Verify** everything works:
-   ```powershell
-   .\scripts\check.ps1
-   ```
-
-5) **Commit** the bootstrap changes:
-   ```powershell
-   git add -A
-   git commit -m "chore: bootstrap project"
-   ```
-
-## For documentation-only updates (no venv)
-
-If you only want to update project name in documentation:
 ```powershell
 .\scripts\bootstrap.ps1
 ```
 
-## What stays unchanged
+### Custom Project Name
 
-- Python package name: `devproj`
+```powershell
+.\scripts\bootstrap.ps1 -ProjectName "my-project" -SetupVenv -NonInteractive
+```
+
+## Quality Gate Commands
+
+```powershell
+# Check everything (lint, format, tests)
+.\scripts\check.ps1
+
+# Auto-fix linting issues
+.\scripts\fix.ps1
+
+# Run tests only
+.\.venv\Scripts\python.exe -m pytest tests/     # Windows
+./.venv/bin/python -m pytest tests/             # Linux/macOS
+```
+
+## After Bootstrap - Next Steps
+
+1. **Review changes**
+   ```bash
+   git status
+   git diff
+   ```
+
+2. **Select Python interpreter in VS Code/code-server**
+   - Open Command Palette (Ctrl+Shift+P)
+   - "Python: Select Interpreter"
+   - Choose `.venv/Scripts/python.exe` (Windows) or `.venv/bin/python` (Linux/macOS)
+
+3. **Replace README.md with project-specific content**
+   ```bash
+   cp PROJECT_README_TEMPLATE.md README.md
+   # Then edit README.md for your project
+   ```
+
+4. **Commit bootstrap changes**
+   ```bash
+   git add -A
+   git commit -m "chore: bootstrap project"
+   git push -u origin main
+   ```
+
+## What Gets Replaced During Bootstrap
+
+- `__PROJECT_NAME__` in all documentation files → your project name
+- Memory bank files updated with project context
+- Documentation prepared for your project
+
+## What Stays the Same
+
+- Python package name: `devproj` (customize after bootstrap if needed)
 - Core project structure
-- Quality gate (`.\scripts\check.ps1`)
-- GitHub Actions CI (if enabled)
+- Quality gate scripts
+- Cline workflow rules in `.clinerules/`
 
-## Next steps
+## Development Workflow Quick Reference
 
-After bootstrap:
-- Review the changes: `git diff`
-- Start development with Cline workflow (see `DEVELOPMENT.md`)
-- Run `.\scripts\check.ps1` before each commit
+```bash
+# 1. Create feature branch
+git checkout -b feature/my-feature
 
-## Template maintenance
+# 2. Verify baseline is green
+.\scripts\check.ps1
 
-This template is maintained at: `python-cline-template`
-For updates, see `CHANGELOG.md` (if available).
+# 3. Use Cline in Plan Mode
+#    - Define goal, acceptance criteria, non-goals
+#    - Create plan (max 10 steps)
+
+# 4. Switch to Act Mode
+#    - Implement one step at a time
+#    - Run .\scripts\check.ps1 after each step
+#    - Commit when green
+
+# 5. Create PR
+#    - Use template from .clinerules/91-pr-template.md
+```
+
+## Platform-Specific Notes
+
+### Windows
+- Use PowerShell (built-in)
+- Python 3.12+ from python.org (not Microsoft Store)
+- Virtual environment at `.venv\Scripts\`
+
+### Linux/macOS
+- Install `pwsh` for PowerShell scripts: `sudo apt-get install -y powershell`
+- Or use Bash fallback: `bash ./scripts/check.sh`
+- Virtual environment at `.venv/bin/`
+- May need: `sudo apt-get install -y python3-venv`
+
+## Common Issues
+
+### Python opens Microsoft Store (Windows)
+**Fix:** Disable App Execution Aliases
+1. Settings → Apps → App Execution Aliases
+2. Turn off `python.exe` and `python3.exe`
+
+### PowerShell execution policy error (Windows)
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Missing python3-venv (Linux)
+```bash
+sudo apt-get install -y python3-venv
+```
+
+### Git author identity unknown
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your@email.com"
+```
+
+## Documentation Links
+
+- **[README.md](README.md)** - Complete template documentation
+- **[BOOTSTRAP.md](BOOTSTRAP.md)** - Detailed bootstrap process
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow and Cline integration
+- **[PROJECT_README_TEMPLATE.md](PROJECT_README_TEMPLATE.md)** - Template for your project's README
+
+## Template Maintenance
+
+- **Repository:** https://github.com/veritarium/python-cline-template-0.1
+- **Version:** See TEMPLATE_VERSION.txt
+- **Changelog:** See CHANGELOG.md
+
+---
+
+For detailed information, see the main [README.md](README.md).

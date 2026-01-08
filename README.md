@@ -1,254 +1,277 @@
-# python-cline-template
+# Python Cline Template
 
-A Python project demonstrating proper setup with virtual environment, testing, and code quality tools.
+A production-ready Python project template with modern development tools, quality gates, and AI-assisted workflow integration.
 
-## Use this template (recommended workflow)
+## 🎯 What is this?
 
-This template provides a cross‑platform setup for Python development. Below are quickstart guides for Linux and Windows.
+This is a **template repository** for creating Python projects with:
 
-### Linux (Ubuntu / code‑server) – Example: KW01‑UBUNTU‑SYS
+- ✅ **Quality gates** - Single-command verification (`.\scripts\check.ps1`)
+- ✅ **Virtual environment** - Isolated dependencies per project
+- ✅ **Testing infrastructure** - pytest with example tests
+- ✅ **Code quality tools** - ruff for linting and formatting
+- ✅ **Cline workflow** - Structured Plan/Act mode development
+- ✅ **Cross-platform** - Windows, Linux, and macOS support
+- ✅ **Bootstrap automation** - One command to set up new projects
 
-**Prerequisites**
-- `git`, `python3`, `python3‑venv`, `python3‑pip`
-- Optional: `pwsh` (PowerShell) for running the PowerShell scripts.
+## 🚀 Quick Start
 
-**Steps**
-1. **Clone your repository**
-2. **Install system packages** (if not already present)
-3. **Bootstrap the project** (creates virtual environment, installs tools, runs quality gate)
-4. **Verify the setup** with the quality gate script
-5. **Commit and push** the bootstrap changes
+### Creating a New Project from this Template
 
-```bash
-mkdir -p ~/dev/projects/info
-cd ~/dev/projects
-git clone https://github.com/veritarium/KW01-UBUNTU-SYS.git
-cd KW01-UBUNTU-SYS
+1. **Use this template on GitHub**
+   - Click the "Use this template" button on GitHub
+   - Or clone and create a new repository:
+     ```bash
+     git clone https://github.com/veritarium/python-cline-template-0.1.git my-project
+     cd my-project
+     rm -rf .git
+     git init
+     ```
 
-pwd
-python3 --version
-git --version
-pwsh --version || true
+2. **Bootstrap your project** (replaces placeholders and sets up environment)
+   ```powershell
+   # Windows
+   .\scripts\bootstrap.ps1 -SetupVenv -NonInteractive
+   
+   # Linux/macOS (requires pwsh)
+   pwsh ./scripts/bootstrap.ps1 -SetupVenv -NonInteractive
+   ```
 
-sudo apt-get update
-sudo apt-get install -y python3-venv python3-pip
+3. **Verify everything works**
+   ```powershell
+   .\scripts\check.ps1
+   ```
 
-ls -la scripts
+4. **Commit the bootstrapped project**
+   ```bash
+   git add -A
+   git commit -m "chore: bootstrap project"
+   git push -u origin main
+   ```
 
-pwsh ./scripts/bootstrap.ps1 -SetupVenv -NonInteractive
+**That's it!** Your project is ready for development.
 
-pwsh ./scripts/check.ps1
+## 📋 What the Bootstrap Does
 
-bash ./scripts/check.sh
+The bootstrap script (`scripts/bootstrap.ps1`) performs these tasks:
 
-git ls-files | grep -i "\.venv" || true
+1. **Replaces placeholders** in documentation files:
+   - `__PROJECT_NAME__` → your project name (defaults to folder name)
+   - Updates memory-bank files with project context
 
-git status
-git diff --name-only
+2. **Sets up Python environment** (when `-SetupVenv` is used):
+   - Creates `.venv` virtual environment
+   - Installs development dependencies (ruff, pytest)
+   - Runs quality gate to verify setup
 
-git add -A
-git commit -m "chore: bootstrap project"
-git push
+3. **Prepares project for development**:
+   - Updates documentation
+   - Configures Cline workflow rules
+   - Sets up quality gates
+
+## 🛠️ What's Included
+
+### Project Structure
+
+```
+your-project/
+├── .clinerules/              # AI workflow rules (Plan/Act mode)
+├── .venv/                    # Virtual environment (created by bootstrap)
+├── devproj/                  # Main Python package
+│   ├── __init__.py
+│   └── main.py              # Example module with tests
+├── tests/                    # Test suite
+│   ├── test_greeting.py
+│   └── test_smoke.py
+├── scripts/
+│   ├── bootstrap.ps1        # Project initialization
+│   ├── check.ps1            # Quality gate (lint + format + test)
+│   ├── check.sh             # Bash version (Linux fallback)
+│   └── fix.ps1              # Auto-fix linting issues
+├── memory-bank/             # Project context for AI assistants
+├── pyproject.toml           # Tool configuration (ruff, pytest)
+├── requirements.txt         # Runtime dependencies
+├── requirements-dev.txt     # Development dependencies
+├── DEVELOPMENT.md           # Development workflow guide
+├── BOOTSTRAP.md            # Detailed bootstrap documentation
+└── PROJECT_README_TEMPLATE.md  # Becomes README.md after bootstrap
 ```
 
-**Notes**
-- If `git commit` fails with “Author identity unknown”, configure your Git identity:
-  ```bash
-  git config --global user.name "Your Name"
-  git config --global user.email "your@email.com"
-  ```
-- Use `bash ./scripts/check.sh` only if the file exists (it is created during bootstrap).
+### Quality Gates
 
-### Windows – Example: KW01‑WINDOWS‑SYS
+**Single command to verify everything:**
+```powershell
+.\scripts\check.ps1
+```
 
-**Prerequisites**
-- `git`, `Python 3.12+` (via Microsoft Store or python.org)
-- PowerShell (already included)
+This runs:
+- ✅ `ruff check .` - Linting
+- ✅ `ruff format --check .` - Format verification
+- ✅ `pytest` - All tests
 
-**Steps**
-1. **Clone your repository**
-2. **Bootstrap the project**
-3. **Verify the setup** with the quality gate script
-4. **Commit and push** the bootstrap changes
+### Cline Workflow Integration
 
+The template includes `.clinerules/` with structured workflows:
+
+- **Plan Mode** - Create detailed plans before implementation
+- **Act Mode** - Execute one step at a time
+- **Quality gates** - Mandatory checks after each step
+- **Commit discipline** - Small, focused commits
+- **PR templates** - Structured pull request documentation
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete workflow guide.
+
+## 📖 Detailed Guides
+
+### For Windows Users
+
+**Prerequisites:**
+- Python 3.12+ (from python.org, not Microsoft Store)
+- Git for Windows
+- PowerShell (built-in)
+
+**Setup:**
 ```powershell
 cd C:\dev\projects
-git clone https://github.com/veritarium/KW01-WINDOWS-SYS.git
-cd KW01-WINDOWS-SYS
+git clone https://github.com/veritarium/python-cline-template-0.1.git my-project
+cd my-project
 
+# Bootstrap with venv setup
 .\scripts\bootstrap.ps1 -SetupVenv -NonInteractive
 
-#Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-#.\scripts\bootstrap.ps1 -SetupVenv -NonInteractive
-
+# Verify
 .\scripts\check.ps1
 
-git ls-files | findstr /I ".venv"
-
-git status
+# Commit
 git add -A
 git commit -m "chore: bootstrap project"
-git push -u origin main
 ```
 
-**Notes**
-- If PowerShell scripts are blocked, you may need to adjust the execution policy:
-  ```powershell
-  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+### For Linux/macOS Users
+
+**Prerequisites:**
+- Python 3.12+ (`python3`, `python3-venv`, `python3-pip`)
+- Git
+- PowerShell Core (`pwsh`) - recommended
+  ```bash
+  # Ubuntu/Debian
+  sudo apt-get install -y powershell
   ```
-  Then run the bootstrap command again.
-- Check CI on GitHub under **Actions** in the new repository.
 
-**Standard option:** The Python package name stays `devproj`. Bootstrap adapts only project name, documentation, and memory bank.
-
-For details see [TEMPLATE_USAGE.md](TEMPLATE_USAGE.md).
-
-## Project Overview
-
-This project serves as a template for Python development with modern tooling including:
-- Virtual environment management
-- Automated testing with pytest
-- Code formatting and linting with ruff
-- VS Code configuration for optimal development experience
-
-## Features
-
-- **Greeting Module**: A simple yet extensible greeting system
-- **Comprehensive Testing**: Full test coverage with pytest
-- **Code Quality**: Automated formatting and linting
-- **Development Tools**: Pre-configured VS Code settings
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.12 or higher
-- Git (for version control)
-
-### Development Setup
-
-The project includes VS Code configuration for optimal development:
-
-- **Auto-activation** of virtual environment
-- **Format on save** with ruff
-- **Pytest integration** for testing
-- **Code actions** for automatic fixes
-
-For a quick setup with virtual environment creation, dependency installation, and quality checks, see the [Quickstart guide above](#use-this-template-recommended-workflow).
-
-## Usage
-
-### Running the Main Script
-
+**Setup:**
 ```bash
-python test_beispiel.py
+cd ~/dev/projects
+git clone https://github.com/veritarium/python-cline-template-0.1.git my-project
+cd my-project
+
+# Bootstrap with venv setup
+pwsh ./scripts/bootstrap.ps1 -SetupVenv -NonInteractive
+
+# Verify (use pwsh or bash version)
+pwsh ./scripts/check.ps1
+# Or: bash ./scripts/check.sh
+
+# Commit
+git add -A
+git commit -m "chore: bootstrap project"
 ```
 
-This will execute the greeting program with default and custom examples.
+### Bootstrap Options
 
-### Running Tests
+```powershell
+# Full setup (recommended for new projects)
+.\scripts\bootstrap.ps1 -SetupVenv -NonInteractive
 
-Run all tests:
-```bash
-pytest
+# Custom project name (instead of folder name)
+.\scripts\bootstrap.ps1 -ProjectName "my-awesome-project" -SetupVenv
+
+# Documentation only (no venv setup)
+.\scripts\bootstrap.ps1
+
+# Interactive mode (with confirmation prompts)
+.\scripts\bootstrap.ps1 -SetupVenv
 ```
 
-Run tests with verbose output:
-```bash
-pytest -v
-```
+## 🔧 Development Workflow
 
-Run a specific test file:
-```bash
-pytest test_greeting.py
-```
+Once bootstrapped, follow this workflow:
 
-### Code Quality Checks
+1. **Create feature branch**
+   ```bash
+   git checkout -b feature/my-feature
+   ```
 
-Format code with ruff:
-```bash
-ruff format .
-```
+2. **Verify baseline is green**
+   ```powershell
+   .\scripts\check.ps1
+   ```
 
-Check for linting issues:
-```bash
-ruff check .
-```
+3. **Use Cline in Plan Mode**
+   - Define goal, acceptance criteria, and non-goals
+   - Create a plan (max 10 steps)
+   - Get approval before implementation
 
-Fix auto-fixable issues:
-```bash
-ruff check --fix .
-```
+4. **Switch to Act Mode**
+   - Implement ONE plan step at a time
+   - Run quality gate after each step
+   - Commit when green
 
-## Project Structure
+5. **Create PR**
+   - Use PR template from `.clinerules/91-pr-template.md`
+   - Ensure all checks pass
 
-```
-python-cline-template/
-├── .venv/                 # Python virtual environment (gitignored)
-├── .vscode/              # VS Code configuration
-│   └── settings.json    # Editor settings for Python development
-├── test_beispiel.py     # Main Python module with greeting functionality
-├── test_greeting.py     # Test suite for the greeting module
-├── requirements.txt     # Project dependencies
-├── .gitignore          # Git ignore rules for Python projects
-└── README.md           # This file
-```
+See [DEVELOPMENT.md](DEVELOPMENT.md) for complete guidelines.
 
-## Code Examples
+## 🎨 Customization
 
-### Using the Greet Function
+After bootstrapping, customize these files for your project:
 
-```python
-from test_beispiel import greet
+- **README.md** - Replace with PROJECT_README_TEMPLATE.md content
+- **devproj/** - Rename package or add your code
+- **tests/** - Add your test cases
+- **requirements.txt** - Add your runtime dependencies
+- **pyproject.toml** - Adjust project metadata
 
-# Default greeting
-result = greet()  # Greets "World" 10 times
+## 📚 Template Documentation
 
-# Custom greeting
-result = greet("Alice", 5)  # Greets "Alice" 5 times
-```
+- **[TEMPLATE_USAGE.md](TEMPLATE_USAGE.md)** - Quick reference for template usage
+- **[BOOTSTRAP.md](BOOTSTRAP.md)** - Detailed bootstrap process documentation
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow and Cline integration
+- **[CHANGELOG.md](CHANGELOG.md)** - Template version history
 
-### Running the Main Program
+## 🤝 Contributing to the Template
 
-```python
-from test_beispiel import main
+This template is maintained to provide the best Python development experience with Cline.
 
-if __name__ == "__main__":
-    main()
-```
+To contribute improvements:
 
-## Development Workflow
-
-1. **Activate virtual environment** before starting work
-2. **Write code** following Python best practices
-3. **Run tests** to ensure functionality
-4. **Format code** with ruff before committing
-5. **Commit changes** with descriptive messages
-
-## Dependencies
-
-- **pytest**: Testing framework
-- **ruff**: Code formatting and linting
-- **colorama**: Cross-platform colored terminal text
-- **packaging**: Core utilities for Python packages
-
-See `requirements.txt` for complete list with versions.
-
-## Contributing
-
-1. Fork the repository
+1. Fork this template repository
 2. Create a feature branch
-3. Make your changes
-4. Add or update tests
-5. Ensure all tests pass
-6. Submit a pull request
+3. Follow the development workflow
+4. Ensure `.\scripts\check.ps1` passes
+5. Submit a PR with clear description
 
-## License
+## 📦 What's Different from Standard Python Projects?
 
-This project is available for use and modification. Please include attribution if redistributing.
+- **AI-first workflow** - Optimized for Cline-assisted development
+- **Quality gate focus** - Single source of truth for code quality
+- **Bootstrap automation** - Zero-friction project setup
+- **Workflow discipline** - Structured Plan/Act development process
+- **Cross-platform scripts** - PowerShell that works everywhere
+- **Memory bank** - Project context for AI assistants
 
-## Acknowledgments
+## ⚖️ License
 
-- Built with modern Python development practices
-- Configured for optimal VS Code experience
-- Includes comprehensive testing and code quality tools
+MIT License - See LICENSE file
+
+## 🙏 Acknowledgments
+
+Built for modern Python development with:
+- **pytest** - Testing framework
+- **ruff** - Fast Python linter and formatter
+- **Cline** - AI-assisted development workflow
+- **PowerShell** - Cross-platform automation
+
+---
+
+**Ready to start your next Python project?** Click "Use this template" and run the bootstrap! 🚀
