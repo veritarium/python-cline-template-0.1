@@ -1,66 +1,49 @@
-# Project Brief: __PROJECT_NAME__
+# Project Brief: Veritarium
 
-## Purpose
-[Describe the main purpose of this project - what problem does it solve?]
+## Vision
 
-Example: A Python application for processing data files and generating reports.
+Veritarium is an **offline on-prem AI appliance** running on **DGX Spark** (GB10 / ARM64 / unified memory) that combines **reasoned RAG answers** with **deterministic, fully verifiable document evidence**.
 
-## Scope (What It Does)
-[List the main features and capabilities]
+## Core Principle: Evidence-First
 
-- Feature 1: [Description]
-- Feature 2: [Description]
-- Feature 3: [Description]
+Users must be able to verify claims directly in the source document, not by trusting the model. Every answer links back to exact, highlightable evidence in the original documents.
 
-## Non-Goals (What It Doesn't Do)
-[List explicitly what is out of scope]
+## Two Kinds of Truth
 
-- Not intended for: [Example: production deployment without containerization]
-- Does not include: [Example: user authentication]
-- Not optimized for: [Example: real-time processing]
+1. **Reasoned Answers** (probabilistic, but evidence-anchored)
+   - High-quality answers to complex questions
+   - Citations and links back to evidence anchors
+   - LLM-generated with retrieval context
 
-## Target Audience
-[Who will use this project?]
+2. **Deterministic Evidence** (exact, complete, verifiable)
+   - Exact word/substring discovery
+   - Visual highlighting in PDF viewer
+   - Complete hit lists (no missing results)
+   - Position-accurate (document, page, character offset)
 
-Example: Data analysts and operations team members
+## Hard Constraints
 
-## Definition of Done (Summary)
-A feature/task is considered complete when:
+- **Offline operation**: After mirroring container images and model weights, no external APIs
+- **No NVIDIA NIM dependency**: vLLM as the serving layer
+- **Single-box deployment**: DGX Spark is the target appliance
+- **Reproducible builds**: Pinned versions, frozen releases, restore-tested backups
+- **Security posture**: Single entry point (443), internal-only backends, default-deny egress
 
-- ✅ Feature is implemented according to acceptance criteria
-- ✅ Tests pass (`.\scripts\check.ps1` is green)
-- ✅ New behavior has tests (would fail if broken)
-- ✅ Bug fixes include regression tests
-- ✅ No side refactors or unrelated changes
-- ✅ Documentation is updated if needed
-- ✅ Changes committed in small, logical units
+## Target Platform
 
-## Project Metadata
+- **Hardware**: NVIDIA DGX Spark
+- **Architecture**: ARM64 (aarch64) - Grace Blackwell GB10
+- **Memory**: Unified memory (CPU/GPU shared)
+- **OS**: Ubuntu Linux
+- **GPU**: NVIDIA Blackwell
 
-- **Created from:** python-cline-template v0.2.0
-- **Primary Language:** Python 3.12+
-- **Development Approach:** AI-assisted with Cline (Plan/Act workflow)
-- **Quality Gate:** `.\scripts\check.ps1` (lint, format, test)
-- **Repository:** [Add your repository URL]
+## Development Environment
 
-## Key Constraints
-
-- Python 3.12+ required
-- Cross-platform support (Windows, Linux, macOS)
-- Must maintain quality gate green before commits
-- No new dependencies without approval
-- Follow Cline workflow (see DEVELOPMENT.md)
-
-## Success Criteria
-
-[How do you know when the project is successful?]
-
-Example:
-- Processes at least 1000 records per minute
-- Generates reports in under 5 seconds
-- Zero data corruption incidents
-- Test coverage above 80%
+- **NVIDIA AI Workbench**: Development capsule (reproducible, deletable, re-creatable)
+- **Cline in VS Code**: Engineering accelerant for planning, implementing, testing
+- **Not runtime dependencies**: Development tools don't run in production
 
 ---
 
-*Note: Update this file as the project evolves. Keep it concise and current.*
+*This brief captures the "why" and constraints. See systemPatterns.md for architecture.*
+- Must maintain quality gate green before commits

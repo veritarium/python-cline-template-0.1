@@ -1,129 +1,243 @@
-# Tech Context
+# Tech Context: Veritarium on DGX Spark
 
-## Environment
-- **OS**: Windows / Linux / macOS (cross-platform)
-- **Shell**: PowerShell (Windows), Bash (Linux/macOS)
-- **Python**: 3.12+
-- **Virtual Environment**: `.venv/` in repo root
+## Target Platform
 
-## Quality Gate
-Single command to verify everything:
-```powershell
-.\scripts\check.ps1
+### Hardware: NVIDIA DGX Spark
+- **CPU**: Grace (ARM64 / aarch64)
+- **GPU**: NVIDIA Blackwell
+- **Memory**: Unified memory architecture (CPU/GPU shared)
+- **Storage**: NVMe SSD
+- **Network**: High-speed networking for potential multi-node (future)
+
+### Operating System
+- **OS**: Ubuntu Linux (ARM64)
+- **Shell**: Bash (primary), PowerShell Core (optional)
+- **Container Runtime**: Docker with NVIDIA Container Toolkit
+
+### Key ARM64 Considerations
+- All container images must be ARM64-native or multi-arch
+- Some Python packages may lack ARM64 wheels (fallback to source builds)
+- NGC containers provide optimized ARM64 bases for AI workloads
+- Unified memory allows larger model contexts than discrete GPU systems
+
+---
+
+## Development Environment
+
+### NVIDIA AI Workbench
+- Reproducible development capsules
+- Projects are deletable and re-creatable
+- Avoids OS churn during iteration
+- Isolated from production runtime
+
+### Cline + VS Code
+- Engineering accelerant (not runtime dependency)
+- Plan/Act mode workflow
+- Quality gates enforced after each step
+- Memory bank for context persistence
+
+### Package Manager: uv (Recommended)
+```bash
+# Install uv (from Astral, same team as Ruff)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create venv and install
+uv venv
+uv sync
+
+# Run commands
+uv run python -m pytest
+uv run ruff check .
+```
+
+**Why uv over pip:**
+- 10-100x faster dependency resolution
+- Lock file support (`uv.lock`)
+- Native ARM64 support
+- Replaces pip, pip-tools, virtualenv, pyenv
+
+---
+
+## Quality Gates
+
+### Per-Service Gate
+```bash
+cd services/<service>
+uv run ruff check .
+uv run ruff format --check .
+uv run pytest
+```
+
+### Full System Gate
+```bash
+./scripts/check.sh
 ```
 
 This runs:
-- `ruff check .` - Linting
-- `ruff format --check .` - Format verification
-- `pytest` - All tests
+- All service linters (ruff)
+- All service formatters (ruff format)
+- All service tests (pytest)
+- Container builds (optional)
+- Integration smoke tests (if services running)
 
-## Key Commands
+---
 
-### Setup
-```powershell
-# Create virtual environment
-py -m venv .venv                           # Windows
-python3 -m venv .venv                      # Linux/macOS
+## Container Strategy
 
-# Install dependencies
-.\.venv\Scripts\python.exe -m pip install -U pip ruff pytest    # Windows
-./.venv/bin/python -m pip install -U pip ruff pytest            # Linux/macOS
+### Base Images (ARM64)
+| Service | Base Image |
+|---------|-----------|
+| Python services | `python:3.12-slim-bookworm` (arm64) |
+| vLLM | NGC vLLM image (ARM64 optimized) |
+| Qdrant | `qdrant/qdrant:latest` (multi-arch) |
+| Rust services | `rust:alpine` then `alpine:latest` (multi-stage) |
+
+### Compose Profiles
+```bash
+# Development (with hot reload)
+docker compose -f compose/compose.yaml -f compose/compose.dev.yaml up
+
+# Production (hardened)
+docker compose -f compose/compose.yaml -f compose/compose.prod.yaml up -d
+
+# Offline deployment
+docker compose -f compose/compose.yaml -f compose/compose.offline.yaml up -d
 ```
+
+### Offline Bundle
+```bash
+# Create bundle (includes images + model weights)
+./scripts/bundle-offline.sh
+
+# Restore on air-gapped system
+./scripts/restore.sh /path/to/bundle.tar.gz
+```
+
+---
+
+## Model Serving (vLLM)
+
+### Configuration
+```yaml
+# config/models.yaml
+models:
+  primary:
+    name: "meta-llama/Llama-3.1-70B-Instruct"
+    max_model_len: 32768
+    tensor_parallel_size: 1  # Single GPU on DGX Spark
+    gpu_memory_utilization: 0.85
+```
+
+### API Compatibility
+- vLLM exposes OpenAI-compatible API
+- Endpoint: `http://vllm:8000/v1`
+- No external API calls in production
+
+---
+
+## Storage Paths
 
 ### Development
-```powershell
-# Quality gate (always before committing)
-.\scripts\check.ps1
-
-# Auto-fix issues
-.\scripts\fix.ps1
-
-# Run tests only
-.\.venv\Scripts\python.exe -m pytest tests/     # Windows
-./.venv/bin/python -m pytest tests/             # Linux/macOS
+```
+./data/
+├── documents/          # Source PDFs
+├── canonical/          # Processed canonical PDFs
+├── text/               # Extracted per-page text
+├── index/              # Deterministic finder index
+├── qdrant/             # Vector store data
+└── models/             # Cached model weights
 ```
 
-## Testing
-- **Framework**: pytest
-- **Test location**: `tests/`
-- **Test naming**: `test_*.py`
-- **Run with**: `pytest` or `python -m pytest`
-
-## Linting/Formatting
-- **Tool**: Ruff (configured in `pyproject.toml`)
-- **Line length**: 100
-- **Rules**: E, F, I, B, UP (see pyproject.toml for full config)
-
-## Troubleshooting Ladder
-
-### Level 1: Gather Facts (2 minutes)
-In the repo root, run:
-```powershell
-git status
-.\.venv\Scripts\python.exe -c "import sys; print(sys.executable)"
-.\.venv\Scripts\python.exe -m pip --version
-.\scripts\check.ps1
+### Production
+```
+/var/veritarium/
+├── documents/
+├── canonical/
+├── text/
+├── index/
+├── qdrant/
+└── models/
 ```
 
-### Level 2: Wrong venv / Wrong Python (Most Common Issue)
-**Symptoms:**
-- pytest can't find packages
-- ruff not found
-- Behavior is "different than yesterday"
+---
 
-**Fix:**
-- Always use venv executables explicitly:
-  - `.\.venv\Scripts\python.exe ...`
-  - `.\.venv\Scripts\ruff.exe ...`
-- In VS Code: Re-select interpreter (Python: Select Interpreter) → choose `.venv`
+## Troubleshooting
 
-### Level 3: Cline Can't Read Terminal Output / Hangs
-**Symptoms:**
-- Cline waits forever for output
-- Commands run but Cline "doesn't see" the result
+### Level 1: Basic Health Check
+```bash
+# Service health
+docker compose ps
+docker compose logs --tail=50 orchestrator
 
-**Fix Steps:**
-1. Restart VS Code
-2. In Cline Settings: Set Terminal Execution Mode to "Background Exec"
-3. Avoid inline commands with complex quoting
-4. Use scripts instead: `.\scripts\check.ps1` rather than long one-liners
+# GPU availability
+nvidia-smi
 
-### Level 4: Quoting Problems (Windows Edge Case)
-**Symptoms:**
-- `python -c "..."` breaks only under Cline/Background Exec
-- Output appears "escaped" or broken
-
-**Stable Workaround:**
-- Write diagnostics to a file: `scripts/diag.py` then run `.\.venv\Scripts\python.exe scripts\diag.py`
-- Keep Cline commands "quote-light": Prefer `.\scripts\check.ps1` over long quoted commands
-
-### Level 5: Performance / "Cline Becomes Imprecise"
-**Symptoms:**
-- Cline reads too much context
-- Responses become sloppy, scope drifts
-
-**Fix:**
-- Expand `.clineignore` (caches, builds, data files, logs)
-- Cut tasks smaller (max 1-3 files per iteration)
-- Start new task and save status in memory-bank/activeContext.md / progress.md
-
-### Diagnostic Prompt (Copy/Paste for Cline)
-```
-Plan Mode. Diagnose environment.
-Goal: Figure out why tool runs/venv/terminal aren't working correctly.
-
-Name the 3 most important checks you want to do first.
-Assume the truth is .\scripts\check.ps1.
-When suggesting commands: use only .venv\Scripts\python.exe and .\scripts\check.ps1.
-
-Then create a fix plan in max 6 steps. No code changes.
+# Python environment
+uv run python -c "import torch; print(torch.cuda.is_available())"
 ```
 
-## CI/CD
-- **Platform**: GitHub Actions
-- **Workflow**: `.github/workflows/ci.yml`
-- **Triggers**: push, pull_request
-- **Checks**: Same as local quality gate (ruff + pytest)
+### Level 2: ARM64 Package Issues
+**Symptoms**: pip install fails, "no matching distribution"
+
+**Fix**:
+1. Check if ARM64 wheel exists: `pip index versions <package>`
+2. Try conda-forge: `conda install -c conda-forge <package>`
+3. Build from source: `pip install --no-binary :all: <package>`
+4. Use NGC container with pre-built packages
+
+### Level 3: Memory Pressure
+**Symptoms**: OOM kills, slow inference, model loading fails
+
+**Fix**:
+1. Check memory: `free -h`, `nvidia-smi`
+2. Reduce `gpu_memory_utilization` in vLLM config
+3. Reduce `max_model_len` (context length)
+4. Use quantized model (AWQ, GPTQ)
+
+### Level 4: Container Issues
+**Symptoms**: Container won't start, image pull fails
+
+**Fix**:
+1. Verify ARM64 image: `docker manifest inspect <image>`
+2. Check NVIDIA runtime: `docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi`
+3. Rebuild with `--platform linux/arm64`
+
+---
+
+## Key Commands Reference
+
+### Development
+```bash
+# Start dev environment
+make dev-up
+
+# Run quality gate
+make check
+
+# Run single service tests
+make test-orchestrator
+
+# Build all containers
+make build
+
+# Create offline bundle
+make bundle
+```
+
+### Deployment
+```bash
+# Deploy production
+make deploy-prod
+
+# Backup all data
+make backup
+
+# Restore from backup
+make restore BUNDLE=/path/to/backup.tar.gz
+
+# Update model weights
+make update-model MODEL=meta-llama/Llama-3.1-70B-Instruct
+```
 
 ---
 
