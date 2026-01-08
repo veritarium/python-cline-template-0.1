@@ -1,59 +1,131 @@
-# Tech Context (Windows)
+# Tech Context
 
-- OS: Windows, shell: PowerShell
-- Python: 3.12
-- Venv: .venv/ in repo root
-- Quality gate:
-  - .\scripts\check.ps1
-- Key commands:
-  - .\.venv\Scripts\python.exe -m pip install -U ruff pytest
-- Testing:
-  - pytest, tests in /tests
-- Lint/format:
-  - Ruff configured in pyproject.toml
+## Environment
+- **OS**: Windows / Linux / macOS (cross-platform)
+- **Shell**: PowerShell (Windows), Bash (Linux/macOS)
+- **Python**: 3.12+
+- **Virtual Environment**: `.venv/` in repo root
 
-## Troubleshooting Ladder (Windows/Cline/Python)
-
-### Stufe 1: Harte Fakten sammeln (2 Minuten)
-Im Repo‑Root:
-- `git status`
-- `.\.venv\Scripts\python.exe -c "import sys; print(sys.executable)"`
-- `.\.venv\Scripts\python.exe -m pip --version`
-- `.\scripts\check.ps1`
-
-### Stufe 2: „Falsche venv / falsches Python“ (häufigster Fehler)
-Symptome: pytest findet Pakete nicht, ruff wird nicht gefunden, Verhalten ist „anders als gestern“
-Fix‑Prinzip:
-- Nutze konsequent venv‑Executables: `.\.venv\Scripts\python.exe …`, `.\.venv\Scripts\ruff.exe …`
-- In VS Code: Interpreter neu wählen (Python: Select Interpreter) und .venv setzen
-
-### Stufe 3: Cline kann Terminal‑Output nicht lesen / hängt
-Symptome: Cline wartet ewig auf Output, Commands laufen, aber Cline „sieht“ das Ergebnis nicht
-Fix‑Schritte:
-- VS Code neu starten
-- In Cline Settings: Terminal Execution Mode auf Background Exec
-- Keine Inline‑Kommandos mit komplexem Quoting verwenden
-- Stattdessen Skripte ausführen (.\scripts\check.ps1), oder ein temporäres .py Script statt python -c "..."
-
-### Stufe 4: Quoting‑Probleme (Windows‑Kante)
-Symptome: python -c "..." oder ähnliche Befehle brechen nur unter Cline/Background Exec
-Stabiler Workaround:
-- Schreib Diagnosen in eine Datei: scripts/diag.py und dann `.\.venv\Scripts\python.exe scripts\diag.py`
-- Halte Cline‑Commands „quote‑arm“: Lieber `.\scripts\check.ps1` als lange, gequotete Einzeiler
-
-### Stufe 5: Performance / „Cline wird unpräzise“
-Symptome: Cline liest zu viel, Antworten werden unsauber, Scope driftet
-Fix‑Prinzip:
-- .clineignore erweitern (Caches, Builds, Datenfiles, Logs)
-- Aufgaben kleiner schneiden (max 1–3 Dateien pro Iteration)
-- Neuen Task starten und Status in memory-bank/activeContext.md / progress.md festhalten
-
-### Diagnose‑Prompt (Copy/Paste für Cline)
+## Quality Gate
+Single command to verify everything:
+```powershell
+.\scripts\check.ps1
 ```
-Plan Mode. Diagnose unter Windows.
-Ziel: herausfinden, warum Tool‑Runs/venv/Terminal nicht korrekt funktionieren.
-Nenne die 3 wichtigsten Checks, die du als erstes machen willst.
-Gehe davon aus, dass die Wahrheit .\scripts\check.ps1 ist.
-Wenn du Commands vorschlägst: nutze ausschließlich .venv\\Scripts\\python.exe und .\scripts\check.ps1.
-Erstelle danach einen Fix‑Plan in max 6 Schritten. Keine Codeänderungen.
+
+This runs:
+- `ruff check .` - Linting
+- `ruff format --check .` - Format verification
+- `pytest` - All tests
+
+## Key Commands
+
+### Setup
+```powershell
+# Create virtual environment
+py -m venv .venv                           # Windows
+python3 -m venv .venv                      # Linux/macOS
+
+# Install dependencies
+.\.venv\Scripts\python.exe -m pip install -U pip ruff pytest    # Windows
+./.venv/bin/python -m pip install -U pip ruff pytest            # Linux/macOS
 ```
+
+### Development
+```powershell
+# Quality gate (always before committing)
+.\scripts\check.ps1
+
+# Auto-fix issues
+.\scripts\fix.ps1
+
+# Run tests only
+.\.venv\Scripts\python.exe -m pytest tests/     # Windows
+./.venv/bin/python -m pytest tests/             # Linux/macOS
+```
+
+## Testing
+- **Framework**: pytest
+- **Test location**: `tests/`
+- **Test naming**: `test_*.py`
+- **Run with**: `pytest` or `python -m pytest`
+
+## Linting/Formatting
+- **Tool**: Ruff (configured in `pyproject.toml`)
+- **Line length**: 100
+- **Rules**: E, F, I, B, UP (see pyproject.toml for full config)
+
+## Troubleshooting Ladder
+
+### Level 1: Gather Facts (2 minutes)
+In the repo root, run:
+```powershell
+git status
+.\.venv\Scripts\python.exe -c "import sys; print(sys.executable)"
+.\.venv\Scripts\python.exe -m pip --version
+.\scripts\check.ps1
+```
+
+### Level 2: Wrong venv / Wrong Python (Most Common Issue)
+**Symptoms:**
+- pytest can't find packages
+- ruff not found
+- Behavior is "different than yesterday"
+
+**Fix:**
+- Always use venv executables explicitly:
+  - `.\.venv\Scripts\python.exe ...`
+  - `.\.venv\Scripts\ruff.exe ...`
+- In VS Code: Re-select interpreter (Python: Select Interpreter) → choose `.venv`
+
+### Level 3: Cline Can't Read Terminal Output / Hangs
+**Symptoms:**
+- Cline waits forever for output
+- Commands run but Cline "doesn't see" the result
+
+**Fix Steps:**
+1. Restart VS Code
+2. In Cline Settings: Set Terminal Execution Mode to "Background Exec"
+3. Avoid inline commands with complex quoting
+4. Use scripts instead: `.\scripts\check.ps1` rather than long one-liners
+
+### Level 4: Quoting Problems (Windows Edge Case)
+**Symptoms:**
+- `python -c "..."` breaks only under Cline/Background Exec
+- Output appears "escaped" or broken
+
+**Stable Workaround:**
+- Write diagnostics to a file: `scripts/diag.py` then run `.\.venv\Scripts\python.exe scripts\diag.py`
+- Keep Cline commands "quote-light": Prefer `.\scripts\check.ps1` over long quoted commands
+
+### Level 5: Performance / "Cline Becomes Imprecise"
+**Symptoms:**
+- Cline reads too much context
+- Responses become sloppy, scope drifts
+
+**Fix:**
+- Expand `.clineignore` (caches, builds, data files, logs)
+- Cut tasks smaller (max 1-3 files per iteration)
+- Start new task and save status in memory-bank/activeContext.md / progress.md
+
+### Diagnostic Prompt (Copy/Paste for Cline)
+```
+Plan Mode. Diagnose environment.
+Goal: Figure out why tool runs/venv/terminal aren't working correctly.
+
+Name the 3 most important checks you want to do first.
+Assume the truth is .\scripts\check.ps1.
+When suggesting commands: use only .venv\Scripts\python.exe and .\scripts\check.ps1.
+
+Then create a fix plan in max 6 steps. No code changes.
+```
+
+## CI/CD
+- **Platform**: GitHub Actions
+- **Workflow**: `.github/workflows/ci.yml`
+- **Triggers**: push, pull_request
+- **Checks**: Same as local quality gate (ruff + pytest)
+
+---
+
+*Update this file when technical context changes.*
+*Keep troubleshooting ladder current with discovered solutions.*
